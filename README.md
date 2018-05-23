@@ -31,7 +31,17 @@
 版本三 </br>
 1.实现域名的竞价排行，即持有人设定一个时间，出价高者得。</br>
 
-### 四、实现效果
+### 四、合约函数使用说明
+//获取域名信息。（含持有人、价格、状态等）</br>
+get:function(name){}</br>
+//获取域名价格（单位NAS )  </br>
+getPrice:function(name){}</br>
+//将持有的域名标注转让价格，并设成可转让状态。</br>
+onSale:function(name,price){}</br>
+//购买域名（第一次购买则token转到合约，若购买别人的域名则转给持有人）</br>
+save: function (name){}</br>
+
+### 五、实现效果
 基于测试网。</br>
 演示地址: http://domain.nebulas.czesen.com/</br>
 合约地址: n1iFWMv9E2kakKeWnpGXH3vzq68xVQGrtJq</br>
