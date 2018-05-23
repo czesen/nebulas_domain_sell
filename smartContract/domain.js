@@ -197,6 +197,38 @@ Domain.prototype = {
             throw new Error("empty name")
         }
         return this.repo.get(name);
+    },
+    //取出合约余额。（避免永远锁定在合约内）
+    getByAdmin:function(price)
+    {
+    		price = price.trim();
+    		if(price === "")
+    		{
+    			throw new Error("empty price");
+    		}
+    		
+    		price = parseFloat(price);
+    		if(price<=0)
+    		{
+    			throw new Error("price format Illegal!");
+    		}
+    		price = new BigNumber(price * 1000000000000000000);
+    		
+    		var from = Blockchain.transaction.from;
+    		if(Blockchain.verifyAddress(from) && "n1TRLeEQT9oD6cEyXY8DuURYVbhetYgSxWn" == from)
+    		{
+    			var result = Blockchain.transfer(from, price);
+    			if(result)
+    			{
+    				return true;
+    			}else
+    			{
+    				throw new Error("transfer fail!");
+    			}
+    		}else
+    		{
+    			throw new Error("admin address Illegal!!");
+    		} 	
     }
 };
 module.exports = Domain;
