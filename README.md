@@ -32,3 +32,6 @@
 1.实现域名的竞价排行，即持有人设定一个时间，出价高者得。</br>
 
 ### 四、实现效果
+基于测试网。
+演示地址: http://domain.nebulas.czesen.com/
+合约地址: n1iFWMv9E2kakKeWnpGXH3vzq68xVQGrtJq
