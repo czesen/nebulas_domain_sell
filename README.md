@@ -42,6 +42,5 @@ onSale:function(name,price){}</br>
 save: function (name){}</br>
 
 ### 五、实现效果
-基于测试网。</br>
 演示地址: http://domain.nebulas.czesen.com/</br>
-合约地址: n1iFWMv9E2kakKeWnpGXH3vzq68xVQGrtJq</br>
+合约地址: n1sMdXueC4XYc4omFdGFdAe823hZotQe3bk</br>
