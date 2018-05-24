@@ -1,13 +1,14 @@
- var dappAddress = "n1iFWMv9E2kakKeWnpGXH3vzq68xVQGrtJq"; //合约地址
+ var dappAddress = "n1sMdXueC4XYc4omFdGFdAe823hZotQe3bk"; //合约地址
  var nebulas = require("nebulas"),
  	Account = nebulas.Account,
  	neb = new nebulas.Neb();
- neb.setRequest(new nebulas.HttpRequest("https://testnet.nebulas.io"));
+ neb.setRequest(new nebulas.HttpRequest("https://mainnet.nebulas.io"));
  var NebPay = require("nebpay");
  var nebPay = new NebPay();
  var layer_html;
  var intervalQuery;
  var myAddress = null;
+ var counts = 0;
 
  $(function() {
  	checkWallet();
@@ -60,11 +61,12 @@
  			var callArgs = "[\"" + name + "\",\"" + price + "\"]"
 
  			serialNumber = nebPay.call(to, value, callFunction, callArgs, {
- 				callback: 'https://pay.nebulas.io/api/pay',
+ 		//		callback: 'https://pay.nebulas.io/api/mainnet/pay',
  				listener: cbPush //设置listener, 处理交易返回信息
  			});
-
+			counts = 0;
  			intervalQuery = setInterval(function() {
+ 				counts++;
  				funcIntervalQuery(serialNumber, 'onSale');
  			}, 12000);
 
@@ -239,16 +241,19 @@
  	var callArgs = "[\"" + name + "\"]";
 
  	serialNumber = nebPay.call(to, value, callFunction, callArgs, {
- 		callback: 'https://pay.nebulas.io/api/pay',
+ 	//	callback: 'https://pay.nebulas.io/api/mainnet/pay',
  		listener: cbPush //设置listener, 处理交易返回信息
  	});
-
+ 	console.log('serialNumber='+serialNumber);
+	counts = 0;
  	intervalQuery = setInterval(function() {
+ 		counts++;
  		funcIntervalQuery(serialNumber, 'save');
  	}, 12000);
  }
 
  function funcIntervalQuery(serialNumber, bizType) {
+ 	console.log('serialNumber='+serialNumber);
  	nebPay.queryPayInfo(serialNumber) //search transaction result from server (result upload to server by app)
  		.then(function(resp) {
  			console.log("tx result: " + resp) //resp is a JSON string
@@ -276,6 +281,12 @@
  				} else if(bizType == 'onSale') {
  					layer.msg('修改状态失败！');
  				}
+ 			}else if(respObject.code === 1 && counts>3) // 4次都查询失败。
+ 			{
+   				clearInterval(intervalQuery);
+   				layer.closeAll('loading');
+   				$('#small-dialog').html(layer_html);
+   				layer.msg('查询失败，建议您过一分钟后再次查询域名状态！');
  			}
  		})
  		.catch(function(err) {
