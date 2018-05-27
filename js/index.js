@@ -7,6 +7,7 @@
  var nebPay = new NebPay();
  var layer_html;
  var intervalQuery;
+ var txtHash;
  var myAddress = null;
  var counts = 0;
 
@@ -17,29 +18,28 @@
  		searchDomain();
  	});
  });
- 
- function checkWallet()
- {
+
+ function checkWallet() {
  	if(typeof(webExtensionWallet) === "undefined") {
  		layer.msg(
-		'检测到星云钱包插件未安装！您无法进行交易!', {
-			time: 10000, //10s后自动关闭
-			btn: ['立刻安装', '我就看看'],
-			yes: function(index) {
-				window.open("https://github.com/ChengOrangeJu/WebExtensionWallet");     
-				layer.close(index);
-			},
-			btn2: function(index) {
-				layer.close(index);
-			}
-		});
-		return false;
+ 			'检测到星云钱包插件未安装！您无法进行交易!', {
+ 				time: 10000, //10s后自动关闭
+ 				btn: ['立刻安装', '我就看看'],
+ 				yes: function(index) {
+ 					window.open("https://github.com/ChengOrangeJu/WebExtensionWallet");
+ 					layer.close(index);
+ 				},
+ 				btn2: function(index) {
+ 					layer.close(index);
+ 				}
+ 			});
+ 		return false;
  	}
  	return true;
  }
 
  function onSaleDomain() {
- 	if(!checkWallet())//没有钱包插件无法继续执行。
+ 	if(!checkWallet()) //没有钱包插件无法继续执行。
  	{
  		return;
  	}
@@ -61,10 +61,10 @@
  			var callArgs = "[\"" + name + "\",\"" + price + "\"]"
 
  			serialNumber = nebPay.call(to, value, callFunction, callArgs, {
- 		//		callback: 'https://pay.nebulas.io/api/mainnet/pay',
+ 				//		callback: 'https://pay.nebulas.io/api/mainnet/pay',
  				listener: cbPush //设置listener, 处理交易返回信息
  			});
-			counts = 0;
+ 			counts = 0;
  			intervalQuery = setInterval(function() {
  				counts++;
  				funcIntervalQuery(serialNumber, 'onSale');
@@ -82,6 +82,12 @@
  	var prefix = $('#prefix option:selected').text();
  	var domain_name = name + prefix;
  	console.log(domain_name);
+ 	
+ 	if(name.length==0)
+ 	{
+ 		layer.msg('域名不可为空！');
+ 		return;
+ 	}
 
  	var from = Account.NewAccount().getAddressString();
  	var value = "0";
@@ -227,11 +233,11 @@
  }
 
  function buyDomain(name, price) {
- 	if(!checkWallet())//没有钱包插件无法继续执行。
+ 	if(!checkWallet()) //没有钱包插件无法继续执行。
  	{
  		return;
  	}
- 	
+
  	var serialNumber
  	var to = dappAddress;
  	var value = price;
@@ -241,11 +247,11 @@
  	var callArgs = "[\"" + name + "\"]";
 
  	serialNumber = nebPay.call(to, value, callFunction, callArgs, {
- 	//	callback: 'https://pay.nebulas.io/api/mainnet/pay',
+ 		//	callback: 'https://pay.nebulas.io/api/mainnet/pay',
  		listener: cbPush //设置listener, 处理交易返回信息
  	});
- 	console.log('serialNumber='+serialNumber);
-	counts = 0;
+ 	console.log('serialNumber=' + serialNumber);
+ 	counts = 0;
  	intervalQuery = setInterval(function() {
  		counts++;
  		funcIntervalQuery(serialNumber, 'save');
@@ -253,7 +259,7 @@
  }
 
  function funcIntervalQuery(serialNumber, bizType) {
- 	console.log('serialNumber='+serialNumber);
+ 	console.log('serialNumber=' + serialNumber);
  	nebPay.queryPayInfo(serialNumber) //search transaction result from server (result upload to server by app)
  		.then(function(resp) {
  			console.log("tx result: " + resp) //resp is a JSON string
@@ -281,12 +287,13 @@
  				} else if(bizType == 'onSale') {
  					layer.msg('修改状态失败！');
  				}
- 			}else if(respObject.code === 1 && counts>3) // 4次都查询失败。
+ 			} else if(respObject.code === 1 && counts > 3) // 4次都查询失败。
  			{
-   				clearInterval(intervalQuery);
-   				layer.closeAll('loading');
-   				$('#small-dialog').html(layer_html);
-   				layer.msg('查询失败，建议您过一分钟后再次查询域名状态！');
+ 				clearInterval(intervalQuery);
+ 				layer.closeAll('loading');
+ 				$('#small-dialog').html(layer_html);
+ 				layer.msg('查询失败</br>，建议过一分钟后再次查询域名状态！</br>当然您可以通过交易流水号:</br>' +txtHash+'</br>在区块链浏览器查询!', {time: 10000, icon:6});
+ 				//layer.msg('查询失败，建议您过一分钟后再次查询域名状态！');
  			}
  		})
  		.catch(function(err) {
@@ -295,8 +302,18 @@
  }
 
  function cbPush(resp) {
- 	console.log("response of push: " + JSON.stringify(resp))
- 	layer.load(1, {
- 		shade: [0.3, '#fff']
- 	});
+ 	console.log("response of push: " + JSON.stringify(resp));
+ 	//console.log(typeof resp);
+ 	
+ 	if(typeof resp == 'string' && resp.indexOf("Transaction rejected by user")>=0)
+ 	{
+ 		clearInterval(intervalQuery);
+ 		layer.msg('交易失败，您取消了本次交易！');
+ 	}else if(resp.txhash && resp.txhash.length > 0)
+ 	{
+ 		txtHash = resp.txhash;
+ 		layer.load(1, {
+ 			shade: [0.3, '#fff']
+ 		});
+ 	}
  }
